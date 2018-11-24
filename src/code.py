@@ -128,10 +128,10 @@ class TroyBot(BaseAgent):
         else:
             turn = 0
 
-        if abs(rad) > (math.pi * 1/3):
+        """ if abs(rad) > (math.pi * 1/3):
             self.controller_state.handbrake = True
         else:
-            self.controller_state.handbrake = False
+            self.controller_state.handbrake = False """
         
         self.controller_state.throttle = 1.0
         self.controller_state.steer = turn
