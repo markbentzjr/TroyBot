@@ -1,8 +1,11 @@
 import math
 import time  # For timings
 
+
+
 from rlbot.agents.base_agent import BaseAgent, SimpleControllerState
 from rlbot.utils.structures.game_data_struct import GameTickPacket
+from rlbot.utils.structures.quick_chats import QuickChats
 
 # Personal codes (classes)
 from position import Vector3
@@ -16,7 +19,7 @@ class TroyBot(BaseAgent):
         self.clear_state()
         self.opponents = 0
         self.friends = 0
-
+        self.chat = 0
         # Game state
         self.action = -1
         # Action -1: AFK
@@ -75,6 +78,8 @@ class TroyBot(BaseAgent):
         elif action == 99:
             self = self.ballchase(packet)
 
+        self.quick_chat()
+
         return self.controller_state
 
     def check_action(self, packet):
@@ -89,6 +94,21 @@ class TroyBot(BaseAgent):
         # For 3/4 opponents
         return self.action
 
+    def quick_chat(self):
+        #print(math.floor(time.time()))
+        if (math.floor(time.time()) % 32 == 0) and math.floor(time.time()) != self.chat:
+            self.send_quick_chat(QuickChats.CHAT_EVERYONE, QuickChats.Reactions_Siiiick)
+            self.chat = math.floor(time.time())
+        elif (math.floor(time.time()) % 32 == 8) and math.floor(time.time()) != self.chat:
+            self.send_quick_chat(QuickChats.CHAT_EVERYONE, QuickChats.Apologies_Sorry)
+            self.chat = math.floor(time.time())
+        elif (math.floor(time.time()) % 32 == 16) and math.floor(time.time()) != self.chat:
+            self.send_quick_chat(QuickChats.CHAT_EVERYONE, QuickChats.PostGame_EverybodyDance)
+            self.chat = math.floor(time.time())
+        elif (math.floor(time.time()) % 32 == 24) and math.floor(time.time()) != self.chat:
+            self.send_quick_chat(QuickChats.CHAT_EVERYONE, QuickChats.Compliments_Thanks)
+            self.chat = math.floor(time.time())
+        
     def goto_boost(self, packet):
         boost_location = []
         pads = self.field_info.boost_pads
@@ -139,7 +159,7 @@ class TroyBot(BaseAgent):
         return self
 
     def kickoff(self, packet):
-        pass
+        return self
 
     def ballchase(self, packet):
         ball_location = Vector3(packet.game_ball.physics.location.x,
@@ -170,7 +190,7 @@ class TroyBot(BaseAgent):
         self.controller_state.steer = turn
         self.controller_state.handbrake = False
         #print(car_location.real_distance(ball_location))
-        print(ball_location.z)
+        #print(ball_location.z)
         if (car_location.real_distance(ball_location) < 1000) and (ball_location.z < 150) :
             if (abs(steer_correction_radians) < math.pi / 4):
                 self.controller_state.boost = True
