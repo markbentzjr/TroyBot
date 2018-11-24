@@ -29,7 +29,7 @@ class Vector3:
         curr = math.atan2(self.y, -self.x)
         ideal = math.atan2(ideal.y, -ideal.x)
 
-        correction = curr - ideal
+        correction = ideal - curr
         if abs(correction) > math.pi:
             if correction < 0:
                 correction += 2 * math.pi

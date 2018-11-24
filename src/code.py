@@ -26,7 +26,8 @@ class TroyBot(BaseAgent):
         # Action  3: Collect boost
         # Action  4: Demo
         # Action 99: Ballchase
-        self.tick = 0
+
+        #self.tick = 0
         self.target = None
 
         self.field_info = self.get_field_info()
@@ -62,15 +63,17 @@ class TroyBot(BaseAgent):
         # self.check_friends(packet)
 
         action = self.check_action(packet)
-        
+
         if action == 0:
             self.kickoff(packet)
             # print("Not going to boost")
         elif action == 3:
             self = self.goto_boost(packet)
             # print("Going to boost")
-        
-        self.controller_state.boost = True
+        elif action == 4:
+            self = self.demo(packet)
+        elif action == 99:
+            self = self.ballchase(packet)
 
         return self.controller_state
 
@@ -80,7 +83,7 @@ class TroyBot(BaseAgent):
         if (own_car.boost == 0.0):
             self.action = 3
         else:
-            self.action = 3
+            self.action = 99
 
         # For 2 opponents
         # For 3/4 opponents
@@ -91,15 +94,15 @@ class TroyBot(BaseAgent):
         pads = self.field_info.boost_pads
         for i in range(len(pads)):
             if (pads[i].is_full_boost == True) and (packet.game_boosts[i].is_active == True):
-            #if (i.is_full_boost == True):
-                boost_location.append(Vector3(pads[i].location.x, pads[i].location.y, pads[i].location.z))
-
+                # if (i.is_full_boost == True):
+                boost_location.append(
+                    Vector3(pads[i].location.x, pads[i].location.y, pads[i].location.z))
 
         own_car = packet.game_cars[self.index]
         own_car_location = Vector3(own_car.physics.location.x,
-                               own_car.physics.location.y, own_car.physics.location.z)
+                                   own_car.physics.location.y, own_car.physics.location.z)
         #print(own_car.physics.location.x, own_car.physics.location.y, own_car.physics.location.z)
-        
+
         boost_choose_location = boost_location[0]
         distance = own_car_location.real_distance(boost_choose_location)
         for i in range(len(boost_location)):
@@ -110,7 +113,7 @@ class TroyBot(BaseAgent):
             if (own_car_location.real_distance(boost) < distance):
                 distance = own_car_location.real_distance(boost_location[i])
                 boost_choose_location = boost_location[i]
-        
+
         own_dir = facing(own_car)
         #print(boost_choose.x, boost_choose.y, boost_choose.z)
         car_to_target = boost_choose_location - own_car_location
@@ -118,24 +121,67 @@ class TroyBot(BaseAgent):
         rad = own_dir.correction_2D(car_to_target)
         #print(rad)
 
-        if rad > 0:
+        if rad > 0.1:
             turn = -1.0
-        elif rad < 0:
+        elif rad < 0.1:
             turn = 1.0
         else:
             turn = 0
+
+        if abs(rad) > (math.pi * 1/3):
+            self.controller_state.handbrake = True
+        else:
+            self.controller_state.handbrake = False
         
         self.controller_state.throttle = 1.0
         self.controller_state.steer = turn
-        self.tick += 1
+        #self.tick += 1
         return self
 
     def kickoff(self, packet):
         pass
 
     def ballchase(self, packet):
-        self.controller_state.boost = True
-        pass
+        ball_location = Vector3(packet.game_ball.physics.location.x,
+                                packet.game_ball.physics.location.y, packet.game_ball.physics.location.z)
+
+        my_car = packet.game_cars[self.index]
+        car_location = Vector3(
+            my_car.physics.location.x, my_car.physics.location.y, my_car.physics.location.z)
+        car_direction = facing(my_car)
+        car_to_ball = ball_location - car_location
+
+        steer_correction_radians = car_direction.correction_2D(car_to_ball)
+
+        if steer_correction_radians > 0.1:
+            if abs(steer_correction_radians) < math.pi / 4:
+                turn = -0.5
+            else: 
+                turn = -1.0
+        elif steer_correction_radians < 0.1:
+            if abs(steer_correction_radians) < math.pi / 4:
+                turn = 0.5
+            else: 
+                turn = 1.0
+        else:
+            turn = 0
+
+        self.controller_state.throttle = 1.0
+        self.controller_state.steer = turn
+        self.controller_state.handbrake = False
+        #print(car_location.real_distance(ball_location))
+        print(ball_location.z)
+        if (car_location.real_distance(ball_location) < 1000) and (ball_location.z < 150) :
+            if (abs(steer_correction_radians) < math.pi / 4):
+                self.controller_state.boost = True
+            else:
+                self.controller_state.handbrake = True
+        else:
+            self.controller_state.boost = False
+        return self
+    
+    def demo(self, packet):
+        return self
 
 def facing(car):
     pitch = float(car.physics.rotation.pitch)
