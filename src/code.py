@@ -22,6 +22,7 @@ class TroyBot(BaseAgent):
         self.chat = 0
         # Game state
         self.action = -1
+        
         # Action -1: AFK
         # Action  0: Kickoff
         # Action  1: Defend post
@@ -78,6 +79,8 @@ class TroyBot(BaseAgent):
             self = self.demo(packet)
         elif action == 99:
             self = self.ballchase(packet)
+        elif action == 95:
+            self = self.positioning_ballchase(packet)
 
         self.quick_chat()
 
@@ -93,7 +96,10 @@ class TroyBot(BaseAgent):
         elif (own_car.boost == 0.0):
             self.action = 3
         else:
-            self.action = 99
+            if self.check_position(packet) == True:
+                self.action = 95
+            else:
+                self.action = 99
         #print(self.check_kickoff(packet))
         print(self.action)
         # For 2 opponents
@@ -230,11 +236,24 @@ class TroyBot(BaseAgent):
 
 # Action 95: Get into position to ballchase
     def positioning_ballchase(self, packet):
-
+        car = packet.game_cars[self.index]
+        #goto self.target
         return self
 
     def check_position(self, packet):
-        return 0
+        # if ball is 'behind', then go to position
+        # If not, is it possible to hit the ball from closer direction
+        car = packet.game_cars[self.index]
+        if car.team == 0:
+            # Team 0
+            self.target
+        else:
+            self.target
+
+        return False
+
+    def ball_section(self, packet):
+        pass
 
 def facing(car):
     pitch = float(car.physics.rotation.pitch)
