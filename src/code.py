@@ -200,7 +200,7 @@ class TroyBot(BaseAgent):
             elif (car_location.real_distance(ball_location) < 3000):
                 if (abs(steer_correction_radians) <= math.pi / 4) and my_car.boost > 50:
                     self.controller_state.boost = True
-                elif abs(steer_correction_radians) > math.pi / 4):
+                elif abs(steer_correction_radians) > math.pi / 4:
                     self.controller_state.boost = False
                     self.controller_state.handbrake = True
                 else:

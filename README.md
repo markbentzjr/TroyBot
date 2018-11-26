@@ -15,6 +15,7 @@ Made by:
 2. Open Rocket League
 3. Download or clone this repository
 3. In the files from the previous step, find and double click on run-gui.bat
+   - If you encountered some error inside the commandline, update to the latest pip if you're being asked (cmd should show you how to do it), and then execute `pip install rlbot` to install rlbot packet
 4. Click the 'Run' button
 
 
