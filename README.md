@@ -1,5 +1,11 @@
-# Troy
-This bot is dedicated to Regan, the most toxic RL player I have ever known. This bot name was taken from Shroud's dog, Troy the German Shepherd - Siberian Husky mix
+# TroyBot
+This bot name was taken from Shroud's dog, Troy the German Shepherd - Siberian Husky mix.
+
+Made by:
+- Maple#1337
+- D&Darkrai#5300
+- killereks#0960
+- SteelPenguin87#2302
 
 ### Plain instructions
 

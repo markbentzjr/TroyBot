@@ -9,15 +9,26 @@ from rlbot.utils.structures.game_data_struct import GameTickPacket
 from position import *
 from counter import *
 from quickchat import quick_chat
+from state import clear_state
+from action import check_action
+
 
 class TroyBot(BaseAgent):
     def initialize_agent(self):
-        # This state is initialized once before the bot starts up
+        # Controller state is initialized once before the bot starts up and cleared
         self.controller_state = SimpleControllerState()
-        self.clear_state()
+        clear_state(self)
+
+        # False when tick is not started, else True
+        self.init = False
+
+        # Opponents and friends count ingame
         self.opponents = 0
         self.friends = 0
+
+        # Chat ticker
         self.chat = 0
+
         # Game state
         self.action = -1
 
@@ -35,25 +46,16 @@ class TroyBot(BaseAgent):
 
         self.field_info = self.get_field_info()
 
-    # Clears bot controller state
-    def clear_state(self):
-        # Read https://github.com/RLBot/RLBotPythonExample/wiki/Input-and-Output-Data for full documentation
-        self.controller_state.throttle = 0
-        self.controller_state.steer = 0
-        self.controller_state.pitch = 0
-        self.controller_state.yaw = 0
-        self.controller_state.roll = 0
-        self.controller_state.boost = False
-        self.controller_state.jump = False
-        self.controller_state.handbrake = False
-
     def get_output(self, packet: GameTickPacket) -> SimpleControllerState:
-        self.clear_state()
+        clear_state(self)
 
-        # self.check_opponents(packet)
-        # self.check_friends(packet)
+        if self.init == False:
+            check_opponents(self, packet)
+            check_friends(self, packet)
+            self.init = True
 
-        action = self.check_action(packet)
+        check_action(self, packet)
+        action = self.action
 
         if action == 0:
             self.kickoff(packet)
@@ -71,28 +73,6 @@ class TroyBot(BaseAgent):
         quick_chat(self)
 
         return self.controller_state
-
-# Decision function
-
-    def check_action(self, packet):
-        # For 1 opponent
-        own_car = packet.game_cars[self.index]
-
-        if self.check_kickoff(packet) == True:
-            self.action = 0
-        elif (own_car.boost == 0.0):
-            self.action = 3
-        else:
-            if self.check_position(packet) == True:
-                self.action = 95
-            else:
-                self.action = 99
-        #print(self.check_kickoff(packet))
-        #print(self.action)
-        # For 2 opponents
-        # For 3/4 opponents
-        return self.action
-
 
 
 # Action 3: Boost
@@ -114,7 +94,7 @@ class TroyBot(BaseAgent):
                                    own_car.physics.location.y,
                                    own_car.physics.location.z)
         #print(own_car.physics.location.x, own_car.physics.location.y, own_car.physics.location.z)
-
+        print(len(boost_location))
         boost_choose_location = boost_location[0]
         distance = own_car_location.real_distance(boost_choose_location)
         for i in range(len(boost_location)):
@@ -131,7 +111,7 @@ class TroyBot(BaseAgent):
         car_to_target = boost_choose_location - own_car_location
         #print(car_to_target.x, car_to_target.y)
         rad = own_dir.correction_2D(car_to_target)
-        #print(rad)
+        # print(rad)
 
         self.controller_state.handbrake = False
         if rad > 0.1:
@@ -155,7 +135,7 @@ class TroyBot(BaseAgent):
         return self
 
 # Action 0: Kickoff
-
+    # action.py Dependent
     def check_kickoff(self, packet):
         ball = packet.game_ball.physics
         #print(ball.velocity.x, ball.velocity.y, ball.velocity.z)
@@ -209,18 +189,32 @@ class TroyBot(BaseAgent):
         self.controller_state.throttle = 1.0
         self.controller_state.steer = turn
         self.controller_state.handbrake = False
-        #print(car_location.real_distance(ball_location))
-        #print(ball_velocity.z)
+        # print(car_location.real_distance(ball_location))
+        # print(ball_velocity.z)
         if (ball_location.z < 150) and abs(ball_velocity.z) < 200:
-            if (car_location.real_distance(ball_location) <
-                1500) and (abs(steer_correction_radians) < math.pi / 4):
-                self.controller_state.boost = True
-            else:
-                if (abs(steer_correction_radians) < math.pi / 2):
+            if (car_location.real_distance(ball_location) < 1500):
+                if (abs(steer_correction_radians) < math.pi / 6):
+                    self.controller_state.boost = True
+                else:
+                    self.controller_state.boost = False
+            elif (car_location.real_distance(ball_location) < 3000):
+                if (abs(steer_correction_radians) <= math.pi / 4) and my_car.boost > 50:
+                    self.controller_state.boost = True
+                elif abs(steer_correction_radians) > math.pi / 4):
+                    self.controller_state.boost = False
                     self.controller_state.handbrake = True
-                self.controller_state.boost = False
+                else:
+                    self.controller_state.boost = False
+            else:
+                if (abs(steer_correction_radians) > math.pi * 0.5):
+                    self.controller_state.handbrake = True
+                    self.controller_state.boost = False
+                else:
+                    self.controller_state.boost = True
         else:
             self.controller_state.boost = False
+            if (car_location.real_distance(ball_location) > 3000) and (abs(steer_correction_radians) < math.pi / 4) and my_car.boost > 50:
+                self.controller_state.boost = True
         return self
 
 # Action 4: Demolitions
@@ -233,9 +227,10 @@ class TroyBot(BaseAgent):
 
     def positioning_ballchase(self, packet):
         #car = packet.game_cars[self.index]
-        #goto self.target
+        # goto self.target
         return self
 
+    # action.py Dependent
     def check_position(self, packet):
         # if ball is 'behind', then go to position
         # If not, is it possible to hit the ball from closer direction
