@@ -37,3 +37,12 @@ class Vector3:
                 correction -= 2 * math.pi
 
         return correction
+
+def facing(car):
+    pitch = float(car.physics.rotation.pitch)
+    yaw = float(car.physics.rotation.yaw)
+
+    facing_x = math.cos(pitch) * math.cos(yaw)
+    facing_y = math.cos(pitch) * math.sin(yaw)
+
+    return Vector3(facing_x, facing_y, 0)
