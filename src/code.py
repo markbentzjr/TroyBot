@@ -13,9 +13,10 @@ from state import clear_state
 from action import check_action
 from boost import goto_boost
 from kickoff import *
-from ballchase import ball_chase
-from position_ballchase import positioning_ballchase
+from ballchase import execute_ballchase
+from position_ballchase import execute_properballchase
 from demo import demo
+from team import team_check
 
 class TroyBot(BaseAgent):
     def initialize_agent(self):
@@ -23,9 +24,11 @@ class TroyBot(BaseAgent):
         self.controller_state = SimpleControllerState()
         clear_state(self)
 
-
         # False when tick is not started, else True
         self.init = False
+
+        # Team code
+        self.team = -1
 
         # Opponents and friends count ingame
         self.opponents = 0
@@ -33,6 +36,7 @@ class TroyBot(BaseAgent):
 
         # Chat ticker
         self.chat = 0
+        self.render = None
 
         # Game state
         self.action = -1
@@ -53,10 +57,13 @@ class TroyBot(BaseAgent):
 
     def get_output(self, packet: GameTickPacket) -> SimpleControllerState:
         clear_state(self)
+        self.renderer.begin_rendering()
+
 
         if self.init == False:
             check_opponents(self, packet)
             check_friends(self, packet)
+            team_check(self, packet)
             self.init = True
 
         check_action(self, packet)
@@ -67,16 +74,18 @@ class TroyBot(BaseAgent):
             # print("Not going to boost")
         elif action == 3:
             if goto_boost(self, packet) == 0:
-                ball_chase(self, packet)
+                execute_ballchase(self, packet)
             # print("Going to boost")
         elif action == 4:
             demo(self, packet)
         elif action == 99:
-            ball_chase(self, packet)
+            execute_ballchase(self, packet)
         elif action == 95:
-            positioning_ballchase(self, packet)
+            execute_properballchase(self, packet)
 
         quick_chat(self)
+
+        self.renderer.end_rendering()
 
         return self.controller_state
 

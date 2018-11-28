@@ -3,7 +3,7 @@ import math
 from position import *
 
 # Action 99: Ballchase
-def ball_chase(agent, packet):
+def execute_ballchase(agent, packet):
     ball_location = Vector3(packet.game_ball.physics.location.x,
                             packet.game_ball.physics.location.y,
                             packet.game_ball.physics.location.z)
@@ -66,3 +66,4 @@ def ball_chase(agent, packet):
         if (car_location.real_distance(ball_location) > 3000) and (abs(steer_correction_radians) < math.pi / 4) and my_car.boost > 50:
             agent.controller_state.boost = True
     
+    agent.renderer.draw_line_3d(ball_location.tuple(), car_location.tuple(), agent.renderer.create_color(255, 255, 255, 0))

@@ -1,7 +1,7 @@
 import math
 
 from position import Vector3
-from ballchase import ball_chase
+from ballchase import execute_ballchase
 
 # Action 0: Kickoff
 # action.py Dependent
@@ -21,6 +21,6 @@ def check_kickoff(agent, packet):
 
 # ball_chase dependent
 def kickoff(agent, packet):
-    ball_chase(agent, packet)
+    execute_ballchase(agent, packet)
     agent.controller_state.boost = True
     return agent
