@@ -23,4 +23,14 @@ def check_kickoff(agent, packet):
 def kickoff(agent, packet):
     execute_ballchase(agent, packet)
     agent.controller_state.boost = True
-    return agent
+    
+    ball_location = Vector3(packet.game_ball.physics.location.x, packet.game_ball.physics.location.y, packet.game_ball.physics.location.z)
+    car_location = Vector3(packet.game_cars[agent.index].physics.location.x, packet.game_cars[agent.index].physics.location.y, packet.game_cars[agent.index].physics.location.z)
+    print(car_location.real_distance(ball_location))
+    if car_location.real_distance(ball_location) < 500:
+        agent.controller_state.jump = True
+        agent.controller_state.steer = 0
+        agent.controller_state.pitch = -1
+
+
+    # No need to return

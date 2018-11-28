@@ -36,7 +36,6 @@ class TroyBot(BaseAgent):
 
         # Chat ticker
         self.chat = 0
-        self.render = None
 
         # Game state
         self.action = -1
@@ -59,7 +58,6 @@ class TroyBot(BaseAgent):
         clear_state(self)
         self.renderer.begin_rendering()
 
-
         if self.init == False:
             check_opponents(self, packet)
             check_friends(self, packet)
@@ -68,12 +66,13 @@ class TroyBot(BaseAgent):
 
         check_action(self, packet)
         action = self.action
-
+        # print(action)
         if action == 0:
             kickoff(self, packet)
             # print("Not going to boost")
         elif action == 3:
             if goto_boost(self, packet) == 0:
+                # print("ballchase")
                 execute_ballchase(self, packet)
             # print("Going to boost")
         elif action == 4:
@@ -88,7 +87,3 @@ class TroyBot(BaseAgent):
         self.renderer.end_rendering()
 
         return self.controller_state
-
-
-
-
