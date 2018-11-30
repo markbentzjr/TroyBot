@@ -38,6 +38,10 @@ class Vector3:
 
         return correction
 
+    def tuple(self):
+        return self.x, self.y, self.z
+
+
 def facing(car):
     pitch = float(car.physics.rotation.pitch)
     yaw = float(car.physics.rotation.yaw)

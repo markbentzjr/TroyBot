@@ -1,7 +1,7 @@
 # Decision function
 
 from kickoff import check_kickoff
-from position_ballchase import check_position
+from position_ballchase import check_positionballchase
 
 
 def check_action(agent, packet):
@@ -13,7 +13,7 @@ def check_action(agent, packet):
     elif (own_car.boost == 0.0):
         agent.action = 3
     else:
-        if check_position(agent, packet) == True:
+        if check_positionballchase(agent, packet) == True:
             agent.action = 95
         else:
             agent.action = 99
