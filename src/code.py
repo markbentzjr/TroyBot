@@ -6,17 +6,17 @@ from rlbot.utils.structures.game_data_struct import GameTickPacket
 
 
 # Personal codes (classes)
-from position import *
 from counter import *
 from quickchat import quick_chat
 from state import clear_state
 from action import check_action
 from boost import goto_boost
-from kickoff import *
+from kickoff import execute_kickoff
 from ballchase import execute_ballchase
 from position_ballchase import execute_properballchase
 from demo import demo
 from team import team_check
+from shooting import execute_shooting
 
 class TroyBot(BaseAgent):
     def initialize_agent(self):
@@ -66,15 +66,18 @@ class TroyBot(BaseAgent):
 
         check_action(self, packet)
         action = self.action
-        # print(action)
+        
+        print("Bot" + str(packet.game_cars[self.index].team) + ': ' + str(self.action))
         if action == 0:
-            kickoff(self, packet)
+            execute_kickoff(self, packet)
             # print("Not going to boost")
         elif action == 3:
             if goto_boost(self, packet) == 0:
                 # print("ballchase")
                 execute_ballchase(self, packet)
             # print("Going to boost")
+        elif action == 2:
+            execute_shooting(self, packet)
         elif action == 4:
             demo(self, packet)
         elif action == 99:
