@@ -17,6 +17,7 @@ from ballchase import execute_ballchase
 from position_ballchase import execute_properballchase
 from demo import demo
 from team import team_check
+from prediction import execute_prediction
 
 class TroyBot(BaseAgent):
     def initialize_agent(self):
@@ -58,6 +59,8 @@ class TroyBot(BaseAgent):
         clear_state(self)
         self.renderer.begin_rendering()
 
+        execute_prediction(self, packet)
+        
         if self.init == False:
             check_opponents(self, packet)
             check_friends(self, packet)
